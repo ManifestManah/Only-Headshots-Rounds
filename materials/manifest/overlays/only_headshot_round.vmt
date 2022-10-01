@@ -1,0 +1,5 @@
+"MonitorScreen"
+{
+	"$basetexture" "manifest/overlays/only_headshot_round"
+  	"$translucent" 1
+}
