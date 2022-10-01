@@ -53,7 +53,7 @@ public void OnPluginStart()
 	LateLoadSupport();
 
 	// Automatically generates a config file that contains our plugins configurable variables
-	AutoExecConfig(true, "custom_HeadshotOnlyRounds");
+	AutoExecConfig(true, "custom_OnlyHeadshotRounds");
 
 	// Adds files to the download list, and precaches them
 	DownloadAndPrecacheFiles();
