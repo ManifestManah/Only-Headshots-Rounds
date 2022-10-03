@@ -45,10 +45,6 @@ public void OnPluginStart()
 	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
 	HookEvent("round_start", Event_RoundStart, EventHookMode_Post);
 
-	// Hooks the temp entity effects we intend to use
-//	AddTempEntHook("EffectDispatch", TE_OnEffectDispatch);
-//	AddTempEntHook("World Decal", TE_OnWorldDecal);
-
 	// Adds late load support
 	LateLoadSupport();
 
@@ -95,14 +91,23 @@ public Action Hook_OnDamageTaken(int client, int &attacker, int &inflictor, floa
 		return Plugin_Continue;
 	}
 
+	// If the attacker does not meet our validation criteria then execute this section
+	if(!IsValidClient(attacker))
+	{
+		return Plugin_Continue;
+	}
+
+
 	char classname[64];
 
 	GetEdictClassname(inflictor, classname, sizeof(classname));
 
-	if(StrContains(classname, "knife") != -1)
+/* - Enables the possibility of hegrenades dealing damage during headshot only rounds
+	if(StrEqual(classname, "hegrenade_projectile", false))
 	{
 		return Plugin_Continue;
 	}
+*/
 
 	// If the damage type is headshot damage then execute this section
 	if(damagetype & CS_DMG_HEADSHOT)
@@ -156,10 +161,10 @@ public Action Hook_OnDamageTaken(int client, int &attacker, int &inflictor, floa
 
 	// Formats the message that we wish to send to the player and store it within our message_string variable
 	Format(message_string, 1024, "%s\n<font color='#ff8000'>Headshot Only:</font>", message_string);
-	Format(message_string, 1024, "%s\n<font color='#FFFFFF'>Only knife and headshot attacks can kill.</font>", message_string);
+	Format(message_string, 1024, "%s\n<font color='#FFFFFF'>Only headshot attacks can kill.</font>", message_string);
 
 	// Sends the message_string message to the client
-	PrintHintText(client, message_string);
+	PrintHintText(attacker, message_string);
 
 	return Plugin_Handled;
 }
@@ -183,18 +188,12 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 		// Changes the HeadshotOnlyRound status to true 
 		HeadshotOnlyRound = true;
 
-		// Applies an overlay to the client's screen
-		ApplyOverlay("r_screenoverlay manifest/overlays/headshot_only_round_cph.vmt");
-
 		return Plugin_Continue;
 	}
 	
 	// Changes the HeadshotOnlyRound status to false
 	HeadshotOnlyRound = false;
 	
-	// Applies an overlay to the client's screen
-	ApplyOverlay("r_screenoverlay manifest/overlays/normal_round_cph.vmt");
-
 	return Plugin_Continue;
 }
 
@@ -211,8 +210,11 @@ public Action Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 
-	// After 3.5 seconds removes the overlay from the client's screen
-	CreateTimer(3.5, Timer_RemoveOverlay, client, TIMER_FLAG_NO_MAPCHANGE);
+	// After 0.1 seconds applies the overlay to the client's screen
+	CreateTimer(0.1, Timer_ApplyOverlay, client, TIMER_FLAG_NO_MAPCHANGE);
+
+	// After 5.0 seconds removes the overlay from the client's screen
+	CreateTimer(5.0, Timer_RemoveOverlay, client, TIMER_FLAG_NO_MAPCHANGE);
 
 	return Plugin_Continue;
 }
@@ -265,50 +267,20 @@ public void PlaySoundForClient(int client, const char[] SoundName)
 }
 
 
-// This happns when a new round starts
-public Action ApplyOverlay(const char[] overlayName)
-{
-	// Loops through all of the clients
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		// If the client does not meet our validation criteria then execute this section
-		if(!IsValidClient(client))
-		{
-			continue;
-		}
-
-		// If the client is not alive then execute this section 
-		if(!IsPlayerAlive(client))
-		{
-			continue;
-		}
-
-		// If the client is on the terrorist or counter-terrorist team then execute this section
-		if(GetClientTeam(client) <= 1)
-		{
-			continue;
-		}
-		
-		// Applies an overlay to the client's screen
-		ClientCommand(client, overlayName);
-	}
-}
-
-
 // This happen when the plugin is loaded and when a new map starts
 public void DownloadAndPrecacheFiles()
 {
 	// Adds the model related files to the download table
-	AddFileToDownloadsTable("manifest/overlays/normal_round_cph.vtf");
-	AddFileToDownloadsTable("manifest/overlays/normal_round_cph.vmt");
-	AddFileToDownloadsTable("manifest/overlays/headshot_only_round_cph.vmt");
-	AddFileToDownloadsTable("manifest/overlays/headshot_only_round_cph.vmt");
+	AddFileToDownloadsTable("materials/manifest/overlays/normal_round.vtf");
+	AddFileToDownloadsTable("materials/manifest/overlays/normal_round.vmt");
+	AddFileToDownloadsTable("materials/manifest/overlays/only_headshot_round.vtf");
+	AddFileToDownloadsTable("materials/manifest/overlays/only_headshot_round.vmt");
 
 	// Precaches the model which we intend to use
-	PrecacheGeneric("manifest/overlays/normal_round_cph.vtf", true);
-	PrecacheGeneric("manifest/overlays/normal_round_cph.vmt", true);
-	PrecacheGeneric("manifest/overlays/headshot_only_round_cph.vtf", true);
-	PrecacheGeneric("manifest/overlays/headshot_only_round_cph.vmt", true);
+	PrecacheGeneric("materials/manifest/overlays/normal_round.vtf", true);
+	PrecacheGeneric("materials/manifest/overlays/normal_round.vmt", true);
+	PrecacheGeneric("materials/manifest/overlays/only_headshot_round.vtf", true);
+	PrecacheGeneric("materials/manifest/overlays/only_headshot_round.vmt", true);
 
 	// Precaches the sound which we intend to use
 	PrecacheSound("physics/flesh/flesh_bloody_break.wav", true);
@@ -325,7 +297,31 @@ public void DownloadAndPrecacheFiles()
 ///////////////////////////////
 
 
-// This happens 3.5 seconds after a player spawns
+// This happens 0.1 seconds after a player spawns
+public Action Timer_ApplyOverlay(Handle timer, int client)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	if(HeadshotOnlyRound)
+	{
+		// Applies an overlay to the client's screen
+		ClientCommand(client, "r_screenoverlay manifest/overlays/only_headshot_round.vmt");
+
+		return Plugin_Continue;
+	}
+
+	// Removes any scren overlay currently added to the client's screen
+	ClientCommand(client, "r_screenoverlay manifest/overlays/normal_round.vmt");
+
+	return Plugin_Continue;
+}
+
+
+// This happens 5.0 seconds after a player spawns
 public Action Timer_RemoveOverlay(Handle timer, int client)
 {
 	// If the client does not meet our validation criteria then execute this section
