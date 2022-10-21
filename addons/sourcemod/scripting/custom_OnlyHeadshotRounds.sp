@@ -308,6 +308,30 @@ public Action Timer_ApplyOverlay(Handle timer, int client)
 
 	if(HeadshotOnlyRound)
 	{
+		// Picks a random number between 0 and 2
+		int RandomSound = GetRandomInt(0, 2);
+
+		// If the randomly picked number is 0 then execute this section
+		if(RandomSound == 0)
+		{
+			// Plays a sound only the specified client can hear
+			PlaySoundForClient(client, "manifest/BoomHeadshot_1.mp3");
+		}
+
+		// If the randomly picked number is 1 then execute this section
+		if(RandomSound == 1)
+		{
+			// Plays a sound only the specified client can hear
+			PlaySoundForClient(client, "manifest/BoomHeadshot_2.mp3");
+		}
+
+		// If the randomly picked number is 2 then execute this section
+		if(RandomSound == 2)
+		{
+			// Plays a sound only the specified client can hear
+			PlaySoundForClient(client, "manifest/BoomHeadshot_3.mp3");
+		}
+
 		// Applies an overlay to the client's screen
 		ClientCommand(client, "r_screenoverlay manifest/overlays/only_headshot_round.vmt");
 
