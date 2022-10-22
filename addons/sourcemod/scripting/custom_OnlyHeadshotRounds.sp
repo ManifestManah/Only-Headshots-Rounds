@@ -276,6 +276,11 @@ public void DownloadAndPrecacheFiles()
 	AddFileToDownloadsTable("materials/manifest/overlays/only_headshot_round.vtf");
 	AddFileToDownloadsTable("materials/manifest/overlays/only_headshot_round.vmt");
 
+	// Adds the sound related files to the download table
+	AddFileToDownloadsTable("sound/manifest/BoomHeadshot_1.mp3");
+	AddFileToDownloadsTable("sound/manifest/BoomHeadshot_2.mp3");
+	AddFileToDownloadsTable("sound/manifest/BoomHeadshot_3.mp3");
+
 	// Precaches the model which we intend to use
 	PrecacheGeneric("materials/manifest/overlays/normal_round.vtf", true);
 	PrecacheGeneric("materials/manifest/overlays/normal_round.vmt", true);
@@ -283,6 +288,9 @@ public void DownloadAndPrecacheFiles()
 	PrecacheGeneric("materials/manifest/overlays/only_headshot_round.vmt", true);
 
 	// Precaches the sound which we intend to use
+	PrecacheSound("sound/manifest/BoomHeadshot_1.mp3", true);
+	PrecacheSound("sound/manifest/BoomHeadshot_2.mp3", true);
+	PrecacheSound("sound/manifest/BoomHeadshot_3.mp3", true);
 	PrecacheSound("physics/flesh/flesh_bloody_break.wav", true);
 	PrecacheSound("physics/flesh/flesh_squishy_impact_hard1.wav", true);
 	PrecacheSound("physics/flesh/flesh_squishy_impact_hard2.wav", true);
