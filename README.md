@@ -1,6 +1,6 @@
 # [Only Headshot Rounds]
 ## Information
-When this plugin is installed on your server every round has a chacne to be turned in to an "only headshot round". During these rounds players will only be able to damage each other if they either shoot the enemies' in the head or manage to stab them with their knives.
+When this plugin is installed on your server every round has a chance to be turned into an "only headshot round". During these rounds, players will only be able to damage each other if they either shoot the enemies in the head or manage to stab them with their knives.
 
 ## Requirements
 In order for the plugin to work, you must have the following installed:
